@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import validator from 'email-validator'
 
 const Userschema=new mongoose.Schema({
     fullname:{

@@ -23,6 +23,31 @@ const Userschema=new mongoose.Schema({
         minlength:6,
         trim:true,
     },
+    bio:{
+        type:String,
+        required:true,
+    },
+    nativelanguage:{
+        type:String,
+        required:true,
+        enum:["nepali","hindi","english"]
+    },
+    learninglanguage:{
+        type:String,
+        required:true,
+    },
+    profilepic:{
+        type:String,
+        required:true
+    },
+    isonboarded:{
+        type:Boolean,
+        default:false,
+    },
+    location:{
+        type:String,
+        required:true
+    }
 },
 {
         timestamps:true,

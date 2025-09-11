@@ -10,6 +10,7 @@ const port=process.env.PORT
 
 const app=express()
 app.use(express.json())
+app.use(cookieParser());
 
 // routres
 app.use("/api",userrouters)

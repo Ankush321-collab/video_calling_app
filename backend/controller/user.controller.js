@@ -82,7 +82,7 @@ export const login = async (req, res) => {
 
     const token = jwt.sign(
       { userId: user._id, email: user.email },
-      process.env.JWT_SECRET_KEY,
+      process.env.JWT_PASSWORD,
       { expiresIn: "1d" }
     );
 
@@ -171,8 +171,8 @@ export const onboard = async (req, res) => {
     // ---------------- STREAM CHAT UPLOAD ----------------
     try {
       const client = StreamChat.getInstance(
-        process.env.STREAM_API_KEY,
-        process.env.STREAM_API_SECRET
+        process.env.video_key,
+        process.env.video_secret
       );
 
       await client.upsertUser({
@@ -198,3 +198,5 @@ export const onboard = async (req, res) => {
     });
   }
 };
+
+

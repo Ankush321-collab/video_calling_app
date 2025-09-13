@@ -5,6 +5,7 @@ import cors from 'cors'
 import cookieParser  from 'cookie-parser'
 import userrouters from './routes/user.route.js'
 
+
 dotenv.config()
 const port=process.env.PORT
 
@@ -12,7 +13,7 @@ const app=express()
 app.use(express.json())
 app.use(cookieParser());
 
-// routres
+// routres for users
 app.use("/api",userrouters)
 
 app.get("/",(req,res)=>{

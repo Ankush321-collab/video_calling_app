@@ -25,20 +25,20 @@ const Userschema=new mongoose.Schema({
     },
     bio:{
         type:String,
-        required:true,
+       default:"",
     },
     nativelanguage:{
         type:String,
-        required:true,
-        enum:["nepali","hindi","english"]
+       default:"",
     },
     learninglanguage:{
         type:String,
-        required:true,
+       default:"",
     },
     profilepic:{
         type:String,
-        required:true
+        default:"",
+       
     },
     isonboarded:{
         type:Boolean,
@@ -46,13 +46,19 @@ const Userschema=new mongoose.Schema({
     },
     location:{
         type:String,
-        required:true
-    }
+        default:"",
+    },
+    friends:[
+        {
+            type:mongoose.Schema.Types.ObjectId,
+            ref:"User",
+        },
+    ],
 },
 {
         timestamps:true,
     },
     )
 
-    const User=mongoose.model('User_s',Userschema)
+    const User=mongoose.model('User',Userschema)
     export default User

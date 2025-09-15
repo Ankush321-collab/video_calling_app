@@ -8,8 +8,15 @@ function App() {
 
   return (
    <>
-   <div className='text-amber-100'>ankush</div>
-   </>
+   <div className='text'></div>
+   <div className='text-red'></div>
+<button className="btn">Button</button>
+<button className="btn btn-neutral">Neutral</button>
+<button className="btn btn-primary">Primary</button>
+<button className="btn btn-secondary">Secondary</button>
+<button className="btn btn-accent">Accent</button>
+<button className="btn btn-ghost">Ghost</button>
+<button className="btn btn-link">Link</button>   </>
   )
 }
 

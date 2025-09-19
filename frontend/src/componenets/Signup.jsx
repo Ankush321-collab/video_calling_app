@@ -2,7 +2,8 @@ import React, { useState } from 'react'
 import {toast} from 'react-toastify'
 import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
-const Signup = () => {
+import { axiosinstance } from '../lib/AxiosInstances'
+ const Signup = () => {
     const[loading,setloading]=useState(false);
     const[error,seterror]=useState(false)
     const navigate=useNavigate();
@@ -30,7 +31,7 @@ const Signup = () => {
         setloading(true);
             seterror("")
         try{
-            const data=await axios.post("http://localhost:5000/api/signup",{
+            const data=await axiosinstance.post("/signup",{
                 fullname:formdata.fullname,
                 email:formdata.email,
                 password:formdata.password
@@ -142,4 +143,6 @@ const Signup = () => {
   )
 }
 
-export default Signup
+export default Signup;
+
+

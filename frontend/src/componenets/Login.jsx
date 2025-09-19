@@ -3,8 +3,9 @@ import { toast } from 'react-toastify'
 import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
+import { axiosinstance } from '../lib/AxiosInstances'
 
-const Login = () => {
+ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -27,7 +28,7 @@ const Login = () => {
     setLoading(true);
     setError("");
     try {
-      const res = await axios.post("http://localhost:5000/api/login", {
+      const res = await axiosinstance.post("/login", {
         email: formdata.email,
         password: formdata.password
       }, {
@@ -115,3 +116,5 @@ const Login = () => {
 };
 
 export default Login;
+
+

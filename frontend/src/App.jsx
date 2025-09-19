@@ -8,11 +8,19 @@ import { useAuth } from './context/AuthContext'
 import Signup from './componenets/signup'
 import Login from './componenets/login'
 import { Navigate, Route, Routes } from 'react-router-dom'
+import CallPage from './componenets/CallPage'
+import ChatPage from './componenets/ChatPage'
+import Notification from './componenets/Notification'
+import Onboarding from './componenets/Onboarding'
+import { Query, QueryClient, useQuery } from '@tanstack/react-query'
 
 function App() {
-  const [count, setCount] = useState(0)
+ 
   const[authuser]=useAuth()
+ 
+
   
+
 
   return (
     <>
@@ -21,7 +29,12 @@ function App() {
     <Routes>
       <Route path="/" element={<Home/>} />
       <Route path="/signup" element={<Signup/>} />
+
       <Route path="/login" element={<Login/>} />
+      <Route path="/call" element={<CallPage/>} />
+      <Route path="/chat" element={<ChatPage/>} />
+      <Route path="/notification" element={<Notification/>} />
+      <Route path="/onboarding" element={<Onboarding/>} />
 
 
     </Routes>

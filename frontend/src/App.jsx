@@ -27,14 +27,14 @@ function App() {
 
 
     <Routes>
-      <Route path="/" element={<Home/>} />
+      <Route path="/" element={authuser? <Home/>: <Login/>} />
       <Route path="/signup" element={<Signup/>} />
 
       <Route path="/login" element={<Login/>} />
-      <Route path="/call" element={<CallPage/>} />
-      <Route path="/chat" element={<ChatPage/>} />
-      <Route path="/notification" element={<Notification/>} />
-      <Route path="/onboarding" element={<Onboarding/>} />
+      <Route path="/call" element={authuser?<CallPage/>:<Login/>} />
+      <Route path="/chat" element={authuser?<ChatPage/>:<Login/>} />
+      <Route path="/notification" element={authuser?<Notification/>:<Login/>} />
+      <Route path="/onboarding" element={authuser?<Onboarding/>:<Login/>} />
 
 
     </Routes>

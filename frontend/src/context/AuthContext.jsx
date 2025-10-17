@@ -1,22 +1,26 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import cookie from "js-cookie";
 
-// creating authcontext
 export const Authcontext = createContext();
 
-// using authuser context
 export const useAuth = () => {
-    return useContext(Authcontext);
+  return useContext(Authcontext);
 };
 
 export const AuthProvider = ({ children }) => {
-    const [authuser, setauthuser] = useState(
-        JSON.parse(localStorage.getItem("user")) || cookie.get("jwt") || null
-    );
+  const [authuser, setauthuser] = useState(null);
+  const [isloading, setIsloading] = useState(true);
 
-    return (
-        <Authcontext.Provider value={[authuser, setauthuser]}>
-            {children}
-        </Authcontext.Provider>
-    );
+  useEffect(() => {
+    const storedUser =
+      JSON.parse(localStorage.getItem("user")) || cookie.get("jwt") || null;
+    setauthuser(storedUser);
+    setIsloading(false);
+  }, []);
+
+  return (
+    <Authcontext.Provider value={[authuser, setauthuser, isloading]}>
+      {children}
+    </Authcontext.Provider>
+  );
 };

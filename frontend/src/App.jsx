@@ -10,6 +10,10 @@ import Notification from "./componenets/Notification";
 import Onboarding from "./componenets/Onboarding";
 import Loader from "./componenets/Loader";
 import "./App.css";
+import Layout from "./pages/Layout";
+import { Notfound } from "./pages/Notfound";
+import Friends from "./pages/Friends";
+import Notifications from "./pages/Notifications";
 
 function App() {
   const [authuser, setAuthUser, isloading] = useAuth();
@@ -22,7 +26,8 @@ function App() {
     <>
       <Routes>
         <Route path="/" element={authuser  && isonboarded ?
-           <Home /> :authuser && !isonboarded ? <Onboarding /> : <Login />} />
+
+           <Layout showsidebar> <Home /></Layout> :authuser && !isonboarded ? <Onboarding /> : <Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
         <Route path="/call" element={authuser ? <CallPage /> : <Login />} />
@@ -34,6 +39,18 @@ function App() {
         <Route
           path="/onboarding"
           element={authuser ? <Onboarding /> : <Login />}
+        />
+         <Route
+          path="/friends"
+          element={authuser ? <Friends /> : <Login />}
+        />
+         <Route
+          path="/notifications"
+          element={authuser ? <Notifications/> : <Login />}
+        />
+         <Route
+          path="/*"
+          element={authuser ? <Notfound/>: <Login />}
         />
       </Routes>
 

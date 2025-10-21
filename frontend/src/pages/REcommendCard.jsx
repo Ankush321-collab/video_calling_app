@@ -1,11 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { LANGUAGE_TO_FLAG } from "../../constants/index";
 import { axiosinstance } from ".././lib/AxiosInstances";
 import { toast } from "react-hot-toast";
 
-const RecommendCard = ({ friend }) => {
+const RecommendCard = ({ friend, alreadyRequested = false }) => {
   const [isSending, setIsSending] = useState(false);
-  const [isSent, setIsSent] = useState(false);
+  const [isSent, setIsSent] = useState(alreadyRequested);
+
+  useEffect(() => {
+    setIsSent(alreadyRequested);
+  }, [alreadyRequested]);
 
   const handleSendRequest = async () => {
     try {
@@ -15,7 +19,10 @@ const RecommendCard = ({ friend }) => {
       setIsSent(true);
     } catch (err) {
       console.error("Error sending friend request:", err);
-      toast.error("Failed to send friend request.");
+      console.error("Error response:", err.response?.data);
+      console.error("Error status:", err.response?.status);
+      const errorMsg = err.response?.data?.message || "Failed to send friend request.";
+      toast.error(errorMsg);
     } finally {
       setIsSending(false);
     }
@@ -64,13 +71,15 @@ const RecommendCard = ({ friend }) => {
           <button
             onClick={handleSendRequest}
             disabled={isSent || isSending}
-            className={`block w-full py-3 px-4 text-center font-semibold text-gray-700 border-2 rounded-xl transition-all duration-300 ease-out ${
+            className={`block w-full py-3 px-4 text-center font-semibold border-2 rounded-xl transition-all duration-300 ease-out ${
               isSent
-                ? "bg-gray-300 border-gray-300 cursor-not-allowed"
-                : "bg-transparent border-gray-200 hover:bg-gray-900 hover:text-white hover:border-gray-900 hover:shadow-lg transform hover:-translate-y-0.5"
+                ? "bg-green-100 text-green-700 border-green-300 cursor-not-allowed"
+                : isSending
+                ? "bg-gray-200 text-gray-600 border-gray-300 cursor-wait"
+                : "bg-transparent text-gray-700 border-gray-200 hover:bg-gray-900 hover:text-white hover:border-gray-900 hover:shadow-lg transform hover:-translate-y-0.5"
             }`}
           >
-            {isSent ? "Request Sent" : isSending ? "Sending..." : "Friend Request"}
+            {isSent ? "✓ Requested" : isSending ? "Sending..." : "Friend Request"}
           </button>
         </div>
       </div>

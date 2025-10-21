@@ -3,7 +3,7 @@ import User from "../model/user.model.js";
 
 export const getrecommend = async (req, res) => {
     try {
-        const currentid = req.user.id;
+        const currentid = req.user._id;
         const currentuser = req.user;
 
         const recommenduser = await User.find({
@@ -27,7 +27,7 @@ export const getrecommend = async (req, res) => {
 
 export const getmyfriends = async (req, res) => {
     try {
-        const user = await User.findById(req.user.id)
+        const user = await User.findById(req.user._id)
             .select("friends")
             .populate("friends", "fullname bio nativelanguage learninglanguage location profilepic");
         
@@ -43,11 +43,13 @@ export const getmyfriends = async (req, res) => {
 
 export const sendfriendrequest = async (req, res) => {
     try {
-        const myid = req.user.id;
+        const myid = req.user._id;
         const { id: recipientid } = req.params;
         
+        console.log('Send friend request - Sender:', myid, 'Recipient:', recipientid);
+        
         // Prevent sending friend request to yourself
-        if (myid === recipientid) {
+        if (myid.toString() === recipientid) {
             return res.status(400).json({
                 message: "Cannot send friend request to yourself",
                 success: false
@@ -92,16 +94,19 @@ export const sendfriendrequest = async (req, res) => {
             receiver: recipientid,
         });
         
+        console.log('✅ Friend request created:', friendRequest);
+        
         res.status(200).json({
             message: "Friend request sent successfully",
             data: friendRequest,
             success: true
         });
     } catch (error) {
+        console.error('❌ Error in sendfriendrequest:', error);
         const msg = error.message;
         res.status(500).json({
             message: msg,
-            success: false // Fixed typo
+            success: false
         });
     }
 }
@@ -120,7 +125,7 @@ export const acceptfriendrequest=async(req,res)=>{
         }
 
         // verify the current user is the recipient
-        if(request.receiver.toString()!=req.user.id){
+        if(request.receiver.toString()!=req.user._id.toString()){
             return res.status(403).json({
                 message:"You are not authorized to accept this request",
                 success:false
@@ -164,5 +169,81 @@ res.status(200).json({
         })
 
     }
+
 }
 
+export const getfriendrequest = async (req, res) => {
+  try {
+    // Fetch incoming friend requests (requests sent to current user)
+    const incomingReqs = await FriendRequest.find({
+      receiver: req.user._id,
+      status: "pending",
+    }).populate("sender", "fullname profilepic nativelanguage learninglanguage bio location");
+
+    // Fetch accepted friend requests (sent by current user and approved)
+    const acceptedReqs = await FriendRequest.find({
+      sender: req.user._id,
+      status: "approved",
+    }).populate("receiver", "fullname profilepic");
+
+    res.status(200).json({ incomingReqs, acceptedReqs });
+  } catch (error) {
+    console.log("Error in getfriendrequest controller:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const getOutgoingFriendReqs = async (req, res) => {
+  try {
+    // Fetch outgoing (sent but not yet approved) friend requests
+    const outgoingRequests = await FriendRequest.find({
+      sender: req.user._id,
+      status: "pending",
+    }).populate("receiver", "fullname profilepic nativelanguage learninglanguage");
+
+    res.status(200).json(outgoingRequests);
+  } catch (error) {
+    console.log("Error in getOutgoingFriendReqs controller:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const rejectfriendrequest = async (req, res) => {
+  try {
+    const { id: requestid } = req.params;
+
+    const request = await FriendRequest.findById(requestid);
+
+    if (!request) {
+      return res.status(404).json({
+        message: "Friend request not found",
+        success: false
+      });
+    }
+
+    // verify the current user is the recipient
+    if (request.receiver.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        message: "You are not authorized to reject this request",
+        success: false
+      });
+    }
+
+    // Delete the friend request instead of updating status
+    await FriendRequest.findByIdAndDelete(requestid);
+
+    res.status(200).json({
+      message: "Friend request rejected",
+      success: true
+    });
+
+  } catch (error) {
+    const msg = error.message;
+    return res.status(500).json({
+      message: msg,
+      success: false
+    });
+  }
+};
+
+// ✅ Accept friend request controller (optional but recommended)

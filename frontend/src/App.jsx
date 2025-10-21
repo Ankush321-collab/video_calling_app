@@ -13,7 +13,7 @@ import "./App.css";
 import Layout from "./pages/Layout";
 import { Notfound } from "./pages/Notfound";
 import Friends from "./pages/Friends";
-import Notifications from "./pages/Notifications";
+import NotificationNotFound from "./componenets/NotificationNotFound";
 
 function App() {
   const [authuser, setAuthUser, isloading] = useAuth();
@@ -33,8 +33,8 @@ function App() {
         <Route path="/call" element={authuser ? <CallPage /> : <Login />} />
         <Route path="/chat" element={authuser ? <ChatPage /> : <Login />} />
         <Route
-          path="/notification"
-          element={authuser ? <Notification /> : <Login />}
+          path="/notifications"
+          element={authuser ? <Layout showsidebar><Notification /></Layout> : <Login />}
         />
         <Route
           path="/onboarding"
@@ -42,11 +42,7 @@ function App() {
         />
          <Route
           path="/friends"
-          element={authuser ? <Friends /> : <Login />}
-        />
-         <Route
-          path="/notifications"
-          element={authuser ? <Notifications/> : <Login />}
+          element={authuser ? <Layout showsidebar><Friends /></Layout> : <Login />}
         />
          <Route
           path="/*"

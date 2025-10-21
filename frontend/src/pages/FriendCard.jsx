@@ -13,7 +13,7 @@ const FriendCard = ({ friend }) => {
           <div className="relative">
             <div className="avatar size-14 rounded-2xl overflow-hidden ring-2 ring-white ring-offset-2 ring-offset-gray-50 group-hover:ring-blue-100 transition-all duration-300">
               <img 
-                src={friend.profilepic} 
+                src={friend.profilepic || "https://via.placeholder.com/150"} 
                 alt={friend.fullname}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
               />

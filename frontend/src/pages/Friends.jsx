@@ -32,9 +32,7 @@ const Friends = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {allfriends.map((friend) => (
-              <Link to={`/profile/${friend._id}`} key={friend._id}>
-                <FriendCard friend={friend} />
-              </Link>
+              <FriendCard friend={friend} key={friend._id} />
             ))}
           </div>
         )}

@@ -15,6 +15,8 @@ dotenv.config()
 
 const port = process.env.PORT || 5000
 const app = express()
+// Behind proxies (Render/Heroku) to ensure secure cookies work
+app.set('trust proxy', 1)
 
 // Cloudinary config (check values are loaded)
 cloudinary.config({
@@ -41,13 +43,31 @@ const upload = multer({ storage })
 
 // Upload route
 app.post("/api/upload", upload.single("profile"), (req, res) => {
+  console.log("[Upload] File uploaded to Cloudinary:", req.file?.path)
   res.json({ url: req.file.path }) // cloudinary URL
 })
 
 // Middlewares
+// CORS: allow multiple origins via FRONTEND_URLS (comma-separated) or single FRONTEND_URL
+const rawOrigins = (process.env.FRONTEND_URLS || process.env.FRONTEND_URL || "http://localhost:5173").split(",")
+  .map(s => s.trim())
+  .filter(Boolean)
+
+// Always include localhost for local dev
+const defaultLocal = ["http://localhost:5173", "http://127.0.0.1:5173"]
+const allowedOrigins = Array.from(new Set([...rawOrigins, ...defaultLocal])).map(o => o.replace(/\/$/, ""))
+
+console.log("CORS allowed origins:", allowedOrigins)
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL|| "https://video-calling-app-csew.vercel.app",
-  credentials: true
+  origin: function (origin, callback) {
+    // allow non-browser requests (like Postman) with no origin
+    if (!origin) return callback(null, true)
+    const normalized = origin.replace(/\/$/, "")
+    if (allowedOrigins.includes(normalized)) return callback(null, true)
+    return callback(new Error(`CORS blocked for origin: ${origin}`))
+  },
+  credentials: true,
 }))
 app.use(express.json())
 app.use(cookieParser())
@@ -60,6 +80,20 @@ app.use("/api",chatrouter)
 
 app.get("/", (req, res) => {
   res.send("backend is running by ankush")
+})
+
+// Health check endpoint with basic diagnostics (safe values only)
+app.get("/api/health", (req, res) => {
+  const mongooseState = mongoose.connection.readyState
+  const dbStatus = mongooseState === 1 ? "connected" : mongooseState === 2 ? "connecting" : "disconnected"
+  console.log("[Health] status check:", { dbStatus })
+  res.json({
+    status: "ok",
+    env: process.env.NODE_ENV,
+    db: dbStatus,
+    corsAllowedOrigins: allowedOrigins,
+    time: new Date().toISOString(),
+  })
 })
 
 // MongoDB connection

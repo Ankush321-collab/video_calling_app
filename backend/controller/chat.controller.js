@@ -11,6 +11,7 @@ export const getstreamtoken = async (req, res) => {
 
         const userId = req.user._id;
         const token = generateStreamToken(userId);
+        console.log("[Stream] Token generated for user:", userId.toString());
         
         res.status(200).json({
             token,

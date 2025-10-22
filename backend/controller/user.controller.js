@@ -86,10 +86,12 @@ export const login = async (req, res) => {
       { expiresIn: "1d" }
     );
 
+    // Use cross-site cookies in production for frontend on different domain
+    const isProd = process.env.NODE_ENV === "production" || process.env.NODE_ENV === "PRODUCTION"
     res.cookie("jwt", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "Strict",
+      secure: isProd,                // required for SameSite=None
+      sameSite: isProd ? "None" : "Lax", // cross-site in prod, nicer DX in dev
       maxAge: 24 * 60 * 60 * 1000,
     });
 
@@ -112,10 +114,11 @@ export const login = async (req, res) => {
 // ---------------- LOGOUT ----------------
 export const logout = async (req, res) => {
   try {
+    const isProd = process.env.NODE_ENV === "production" || process.env.NODE_ENV === "PRODUCTION"
     res.clearCookie("jwt", {
       httpOnly: true,
-      sameSite: "Strict",
-      secure: process.env.NODE_ENV === "production",
+      sameSite: isProd ? "None" : "Lax",
+      secure: isProd,
     });
     res.status(200).json({
       message: "Logout successful",
@@ -157,6 +160,7 @@ export const onboard = async (req, res) => {
     
     if (req.file) {
       finalProfilePic = req.file.path; // Cloudinary URL from uploaded file
+      console.log("[Onboard] Cloudinary upload success:", finalProfilePic)
     } else if (!profilepic) {
       // Generate random avatar as fallback
       const randomIndex = Math.floor(Math.random() * 10);

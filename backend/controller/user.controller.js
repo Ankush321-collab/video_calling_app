@@ -86,12 +86,14 @@ export const login = async (req, res) => {
       { expiresIn: "1d" }
     );
 
-    // Use cross-site cookies in production for frontend on different domain
+    // Cross-site cookie handling: if frontend origin is non-localhost, set SameSite=None; Secure=true
+    const origin = req.headers.origin || ""
     const isProd = process.env.NODE_ENV === "production" || process.env.NODE_ENV === "PRODUCTION"
+    const isCrossSite = origin && !/localhost|127\.0\.0\.1/.test(origin)
     res.cookie("jwt", token, {
       httpOnly: true,
-      secure: isProd,                // required for SameSite=None
-      sameSite: isProd ? "None" : "Lax", // cross-site in prod, nicer DX in dev
+      secure: isCrossSite || isProd,               // required for SameSite=None
+      sameSite: (isCrossSite || isProd) ? "None" : "Lax", // cross-site when deployed, Lax locally
       maxAge: 24 * 60 * 60 * 1000,
     });
 
@@ -114,11 +116,13 @@ export const login = async (req, res) => {
 // ---------------- LOGOUT ----------------
 export const logout = async (req, res) => {
   try {
+    const origin = req.headers.origin || ""
     const isProd = process.env.NODE_ENV === "production" || process.env.NODE_ENV === "PRODUCTION"
+    const isCrossSite = origin && !/localhost|127\.0\.0\.1/.test(origin)
     res.clearCookie("jwt", {
       httpOnly: true,
-      sameSite: isProd ? "None" : "Lax",
-      secure: isProd,
+      sameSite: (isCrossSite || isProd) ? "None" : "Lax",
+      secure: isCrossSite || isProd,
     });
     res.status(200).json({
       message: "Logout successful",

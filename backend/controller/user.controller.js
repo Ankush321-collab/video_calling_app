@@ -152,10 +152,26 @@ export const onboard = async (req, res) => {
       });
     }
 
+    // Use uploaded file URL if available, otherwise use provided profilepic or random avatar
+    let finalProfilePic = profilepic;
+    
+    if (req.file) {
+      finalProfilePic = req.file.path; // Cloudinary URL from uploaded file
+    } else if (!profilepic) {
+      // Generate random avatar as fallback
+      const randomIndex = Math.floor(Math.random() * 10);
+      finalProfilePic = `https://randomuser.me/api/portraits/lego/${randomIndex}.jpg`;
+    }
+
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       {
-        ...req.body,
+        fullname,
+        bio,
+        nativelanguage,
+        learninglanguage,
+        location,
+        profilepic: finalProfilePic,
         isonboarded: true,
       },
       { new: true }
@@ -178,7 +194,7 @@ export const onboard = async (req, res) => {
       await client.upsertUser({
         id: updatedUser._id.toString(),
         name: updatedUser.fullname,
-        image: updatedUser.profilepic || "https://randomuser.me/api/portraits/lego/2.jpg",
+        image: updatedUser.profilepic,
       });
 
       console.log(`✅ Stream user updated for ${updatedUser.fullname}`);

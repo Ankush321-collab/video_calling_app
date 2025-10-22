@@ -10,6 +10,8 @@ const Onboarding = () => {
   const [error, seterror] = useState("")
   const navigate = useNavigate()
   const [authuser, setAuthUser] = useAuth()
+  const [imageFile, setImageFile] = useState(null)
+  const [imagePreview, setImagePreview] = useState("")
 
   const [formdata, setformdata] = useState({
     fullname: authuser?.fullname || "",
@@ -28,24 +30,59 @@ const Onboarding = () => {
     })
   }
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+      if (!validTypes.includes(file.type)) {
+        toast.error('Please upload a valid image (JPG, PNG, or WebP)')
+        return
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image size should be less than 5MB')
+        return
+      }
+
+      setImageFile(file)
+      // Create preview
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setImagePreview(reader.result)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
   const handlesubmit = async (e) => {
     e.preventDefault()
     setloading(true)
     seterror("")
 
     try {
-      const res = await axiosinstance.post(
-        "/onboard",
-        {
-          fullname: formdata.fullname,
-          bio: formdata.bio,
-          nativelanguage: formdata.nativelanguage,
-          learninglanguage: formdata.learninglanguage,
-          location: formdata.location,
-          profilepic: formdata.profilepic,
-        },
-        { withCredentials: true }
-      )
+      const formData = new FormData()
+      formData.append("fullname", formdata.fullname)
+      formData.append("bio", formdata.bio)
+      formData.append("nativelanguage", formdata.nativelanguage)
+      formData.append("learninglanguage", formdata.learninglanguage)
+      formData.append("location", formdata.location)
+      
+      // If user uploaded an image, send it
+      if (imageFile) {
+        formData.append("profilepic", imageFile)
+      } else if (formdata.profilepic) {
+        // If user used random avatar (URL string)
+        formData.append("profilepic", formdata.profilepic)
+      }
+
+      const res = await axiosinstance.post("/onboard", formData, {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
 
       const data = res.data
 
@@ -57,7 +94,7 @@ const Onboarding = () => {
       toast.success(`Onboarding successful for ${data.user.fullname}`)
       navigate("/")
     } catch (error) {
-      const msg = error?.response?.data?.errors || "Onboarding Failed"
+      const msg = error?.response?.data?.message || error?.response?.data?.errors || "Onboarding Failed"
       seterror(msg)
       toast.error(msg)
     } finally {
@@ -69,11 +106,14 @@ const Onboarding = () => {
     const idx = Math.floor(Math.random() * 10)
     const randompic = `https://randomuser.me/api/portraits/lego/${idx}.jpg`
 
+    // Clear uploaded file if any
+    setImageFile(null)
+    setImagePreview("")
+    
     setformdata({
       ...formdata,
       profilepic: randompic,
     })
-  
   };
 
   return (
@@ -114,9 +154,9 @@ const Onboarding = () => {
               {/* IMAGE PREVIEW */}
               <div className="relative group">
                 <div className="size-32 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-700 dark:to-gray-600 overflow-hidden shadow-lg transform transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 border-4 border-white/80 dark:border-gray-600/80">
-                  {formdata.profilepic ? (
+                  {imagePreview || formdata.profilepic ? (
                     <img
-                      src={formdata.profilepic}
+                      src={imagePreview || formdata.profilepic}
                       alt="Profile Preview"
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
@@ -129,15 +169,30 @@ const Onboarding = () => {
                 <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500/0 to-purple-600/0 group-hover:from-blue-500/20 group-hover:to-purple-600/20 transition-all duration-500" />
               </div>
 
-              {/* Generate Random Avatar BTN */}
-              <button 
-                type="button" 
-                onClick={randomprofilepic} 
-                className="btn bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 border-0 text-white shadow-lg transform transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 group"
-              >
-                <ShuffleIcon className="size-4 mr-2 transition-transform duration-300 group-hover:rotate-180" />
-                Generate Random Avatar
-              </button>
+              {/* Upload & Random Avatar Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 w-full">
+                {/* Upload Button */}
+                <label className="btn flex-1 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 border-0 text-white shadow-lg transform transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 group cursor-pointer">
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                  <CameraIcon className="size-4 mr-2 transition-transform duration-300 group-hover:rotate-12" />
+                  Upload Photo
+                </label>
+
+                {/* Generate Random Avatar BTN */}
+                <button 
+                  type="button" 
+                  onClick={randomprofilepic} 
+                  className="btn flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 border-0 text-white shadow-lg transform transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 group"
+                >
+                  <ShuffleIcon className="size-4 mr-2 transition-transform duration-300 group-hover:rotate-180" />
+                  Random Avatar
+                </button>
+              </div>
             </div>
 
             {/* Input Fields Grid */}

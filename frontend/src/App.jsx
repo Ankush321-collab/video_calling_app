@@ -30,7 +30,7 @@ function App() {
            <Layout showsidebar> <Home /></Layout> :authuser && !isonboarded ? <Onboarding /> : <Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/call" element={authuser ? <CallPage /> : <Login />} />
+  <Route path="/call/:id" element={authuser ? <CallPage /> : <Login />} />
         <Route path="/chat" element={authuser ? <ChatPage /> : <Login />} />
         <Route
           path="/notifications"

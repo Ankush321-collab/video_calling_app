@@ -1,0 +1,81 @@
+/* Modern 3D Chat Styles */
+
+/* Stream Chat Customizations */
+.str-chat {
+  height: 100%;
+  background: transparent;
+}
+
+.str-chat__container {
+  background: transparent;
+}
+
+.str-chat__channel {
+  background: transparent;
+}
+
+/* Message bubbles with 3D effect */
+.str-chat__message-simple {
+  transition: all 0.3s ease;
+}
+
+.str-chat__message-simple:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Modern message input */
+.str-chat__input-flat {
+  border-radius: 1rem;
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.str-chat__input-flat:focus-within {
+  transform: scale(1.01);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Send button enhancement */
+.str-chat__send-button {
+  transition: all 0.3s ease;
+}
+
+.str-chat__send-button:hover {
+  transform: scale(1.1) rotate(5deg);
+}
+
+/* Header styling */
+.str-chat__header-livestream {
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Smooth transitions for all interactive elements */
+button, a, input, textarea {
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}

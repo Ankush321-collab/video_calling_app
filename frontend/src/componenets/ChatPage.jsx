@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { StreamChat } from "stream-chat";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
@@ -15,12 +15,14 @@ import {
   Window,
 } from "stream-chat-react";
 import CallButton from "./CallButton";
+import IncomingCall from "./IncomingCall";
 import "stream-chat-react/dist/css/v2/index.css";
 
 const API_KEY = import.meta.env.VITE_VIDEO_KEY;
 
 const ChatPage = () => {
   const { id: targetId } = useParams();
+  const navigate = useNavigate();
   const [authuser] = useAuth();
 
   const [chatClient, setChatClient] = useState(null);
@@ -29,6 +31,8 @@ const ChatPage = () => {
   const [token, setToken] = useState(null);
   const [error, setError] = useState(null);
   const [targetUser, setTargetUser] = useState(null);
+  const [incomingCall, setIncomingCall] = useState({ open: false, callId: null, callerName: null, callUrl: null });
+  const [outgoingCall, setOutgoingCall] = useState({ open: false, callId: null });
 
   console.log("ChatPage - authuser:", authuser);
   console.log("ChatPage - targetId:", targetId);
@@ -141,6 +145,34 @@ const ChatPage = () => {
 
         setChatClient(client);
         setChannel(currentChannel);
+
+        // Listen for incoming call invites
+        const unsubscribe = currentChannel.on("message.new", (event) => {
+          try {
+            const msg = event.message;
+            if (!msg) return;
+            // Only react to call invites from others
+            if (msg.callInvite && msg.callerId !== authuser._id) {
+              const callerName = msg.callerName || "Someone";
+              setIncomingCall({
+                open: true,
+                callId: msg.callId,
+                callerName,
+                callUrl: msg.callUrl || `${window.location.origin}/call/${msg.callId}`,
+              });
+              toast(`Incoming video call from ${callerName}`, { icon: "📞" });
+            }
+          } catch (e) {
+            console.error("Error handling incoming call invite:", e);
+          }
+        });
+
+        // cleanup listener on unmount or channel change
+        return () => {
+          if (unsubscribe && typeof unsubscribe.unsubscribe === "function") {
+            unsubscribe.unsubscribe();
+          }
+        };
       } catch (err) {
         console.error("Error initializing chat:", err);
         setError("Could not connect to chat: " + err.message);
@@ -149,7 +181,7 @@ const ChatPage = () => {
         setLoading(false);
       }
     };
-    initChat();
+    const cleanupPromise = initChat();
 
     // Cleanup
     return () => {
@@ -161,10 +193,15 @@ const ChatPage = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <div className="loading loading-spinner loading-lg"></div>
-          <p className="mt-4">Loading chat...</p>
+      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-base-200 via-base-300 to-base-200">
+        <div className="text-center relative">
+          <div className="relative">
+            <div className="loading loading-spinner loading-lg text-primary animate-pulse"></div>
+            <div className="absolute inset-0 loading loading-spinner loading-lg text-secondary opacity-30 blur-sm"></div>
+          </div>
+          <p className="mt-6 text-lg font-medium bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent animate-pulse">
+            Loading chat...
+          </p>
         </div>
       </div>
     );
@@ -172,14 +209,18 @@ const ChatPage = () => {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <p className="text-red-500 text-lg">{error}</p>
+      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-error/10 via-base-300 to-error/10">
+        <div className="text-center backdrop-blur-xl bg-base-100/80 p-8 rounded-3xl shadow-2xl border border-error/20 transform hover:scale-105 transition-all duration-300">
+          <div className="text-6xl mb-4 animate-bounce">⚠️</div>
+          <p className="text-error text-lg font-semibold mb-2">{error}</p>
           <button 
-            className="btn btn-primary mt-4" 
+            className="btn btn-primary mt-6 group relative overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300" 
             onClick={() => window.location.reload()}
           >
-            Retry
+            <span className="relative z-10 flex items-center gap-2">
+              🔄 Retry
+            </span>
+            <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           </button>
         </div>
       </div>
@@ -188,8 +229,11 @@ const ChatPage = () => {
 
   if (!chatClient || !channel) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <p>Initializing chat...</p>
+      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-base-200 via-base-300 to-base-200">
+        <div className="flex items-center gap-3 backdrop-blur-xl bg-base-100/60 px-6 py-4 rounded-2xl shadow-xl border border-base-content/10">
+          <div className="loading loading-ring loading-md text-primary"></div>
+          <p className="text-lg font-medium">Initializing chat...</p>
+        </div>
       </div>
     );
   }
@@ -197,20 +241,46 @@ const ChatPage = () => {
   // Handle video call
   const handleVideoCall = () => {
     if (channel) {
-      const callUrl = `${window.location.origin}/call/${channel.id}`;
-      channel.sendMessage({
-        text: `Join the video call: ${callUrl}`,
-      });
-      window.open(callUrl, "_blank");
-      toast.success("Video call initiated!");
+      const callId = channel.id; // reuse channel id as call id
+      // Show confirmation modal instead of directly navigating
+      setOutgoingCall({ open: true, callId });
     }
   };
 
+  const confirmVideoCall = () => {
+    if (channel && outgoingCall.callId) {
+      const callUrl = `${window.location.origin}/call/${outgoingCall.callId}`;
+      channel.sendMessage({
+        text: `Incoming video call`,
+        callInvite: true,
+        callId: outgoingCall.callId,
+        callUrl,
+        callerId: authuser._id,
+        callerName: authuser.fullname || authuser.name,
+      });
+      // Navigate to the call page
+      navigate(`/call/${outgoingCall.callId}`);
+      toast.success("Connecting to video call...");
+      setOutgoingCall({ open: false, callId: null });
+    }
+  };
+
+  const cancelVideoCall = () => {
+    setOutgoingCall({ open: false, callId: null });
+    toast("Video call cancelled", { icon: "❌" });
+  };
+
   return (
-    <div className="h-[93vh]">
+    <div className="h-[93vh] relative overflow-hidden bg-gradient-to-br from-base-200 via-base-100 to-base-200">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-secondary/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+      </div>
+      
       <Chat client={chatClient}>
         <Channel channel={channel}>
-          <div className="w-full relative">
+          <div className="w-full relative h-full backdrop-blur-sm">
             <CallButton handleVideoCall={handleVideoCall} />
             <Window>
               <ChannelHeader />
@@ -221,6 +291,25 @@ const ChatPage = () => {
           <Thread />
         </Channel>
       </Chat>
+      {/* Incoming call modal */}
+      <IncomingCall
+        open={incomingCall.open}
+        callerName={incomingCall.callerName}
+        onAccept={() => {
+          // Navigate directly to the call route
+          if (incomingCall.callId) navigate(`/call/${incomingCall.callId}`);
+          setIncomingCall({ open: false, callId: null, callerName: null, callUrl: null });
+        }}
+        onDecline={() => setIncomingCall({ open: false, callId: null, callerName: null, callUrl: null })}
+      />
+      {/* Outgoing call confirmation modal */}
+      <IncomingCall
+        open={outgoingCall.open}
+        callerName={targetUser?.fullname || "this user"}
+        onAccept={confirmVideoCall}
+        onDecline={cancelVideoCall}
+        isOutgoing={true}
+      />
     </div>
   );
 };

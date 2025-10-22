@@ -3,13 +3,28 @@ import { login, logout, onboard, signup } from '../controller/user.controller.js
 import { protecteroute } from '../middleware/uth.middleware.js'
 import { acceptfriendrequest, getfriendrequest, getmyfriends, getOutgoingFriendReqs, getrecommend, rejectfriendrequest, sendfriendrequest } from '../controller/getpeople.controller.js'
 import User from '../model/user.model.js'
+import multer from 'multer'
+import { CloudinaryStorage } from 'multer-storage-cloudinary'
+import { v2 as cloudinary } from 'cloudinary'
+
 const router=express.Router()
+
+// Multer + Cloudinary storage for profile pics
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "video_app/profiles",
+    allowed_formats: ["jpg", "png", "jpeg", "webp"],
+    transformation: [{ width: 500, height: 500, crop: "fill" }]
+  }
+})
+const upload = multer({ storage })
 
 router.post("/signup",signup)
 router.post("/login",login)
 router.post("/logout",logout)
 
-router.post("/onboard",protecteroute,onboard)
+router.post("/onboard", protecteroute, upload.single("profilepic"), onboard)
 
 router.get("/recommendfriend",protecteroute,getrecommend);
 router.get("/myfriends",protecteroute,getmyfriends);

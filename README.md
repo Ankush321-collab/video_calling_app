@@ -62,7 +62,7 @@ A modern, full-stack video calling and chat application built for language learn
 
 ---
 
-## 🛠 Tech Stack
+## 🛠 Tech Stack used
 
 ### Frontend
 - **React 19** - UI library

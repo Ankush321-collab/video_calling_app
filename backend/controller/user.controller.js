@@ -86,11 +86,10 @@ export const login = async (req, res) => {
       { expiresIn: "1d" }
     );
 
-    const isProd = (process.env.NODE_ENV || "").toLowerCase() === "production";
     res.cookie("jwt", token, {
       httpOnly: true,
-      secure: isProd, // cookies must be secure in production when SameSite=None
-      sameSite: isProd ? "None" : "Lax", // allow cross-site cookie on prod
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Strict",
       maxAge: 24 * 60 * 60 * 1000,
     });
 
@@ -113,11 +112,10 @@ export const login = async (req, res) => {
 // ---------------- LOGOUT ----------------
 export const logout = async (req, res) => {
   try {
-    const isProd = (process.env.NODE_ENV || "").toLowerCase() === "production";
     res.clearCookie("jwt", {
       httpOnly: true,
-      sameSite: isProd ? "None" : "Lax",
-      secure: isProd,
+      sameSite: "Strict",
+      secure: process.env.NODE_ENV === "production",
     });
     res.status(200).json({
       message: "Logout successful",

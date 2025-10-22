@@ -46,7 +46,7 @@ app.post("/api/upload", upload.single("profile"), (req, res) => {
 
 // Middlewares
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:5173",
+  origin: process.env.FRONTEND_URL|| "https://video-calling-app-csew.vercel.app",
   credentials: true
 }))
 app.use(express.json())

@@ -17,8 +17,11 @@
     "lucide-react": "^0.544.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-hot-toast": "^2.6.0",
     "react-router-dom": "^7.9.1",
     "react-toastify": "^11.0.5",
+    "stream-chat": "^9.24.0",
+    "stream-chat-react": "^13.9.0",
     "tailwindcss": "^4.1.13",
     "zustand": "^5.0.8"
   },

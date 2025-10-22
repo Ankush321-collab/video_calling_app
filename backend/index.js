@@ -4,6 +4,8 @@ import dotenv from 'dotenv'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import userrouters from './routes/user.route.js'
+import chatrouter from './routes/Chat.route.js'
+
 import multer from 'multer'
 import { v2 as cloudinary } from 'cloudinary'
 import { CloudinaryStorage } from 'multer-storage-cloudinary'
@@ -52,6 +54,9 @@ app.use(cookieParser())
 
 // User routes
 app.use("/api", userrouters)
+
+// chat route
+app.use("/api",chatrouter)
 
 app.get("/", (req, res) => {
   res.send("backend is running by ankush")

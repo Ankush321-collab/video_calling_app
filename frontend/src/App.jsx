@@ -42,7 +42,11 @@ function App() {
         />
          <Route
           path="/friends"
-          element={authuser ? <Layout showsidebar><Friends /></Layout> : <Login />}
+          element={authuser && isonboarded? <Layout showsidebar><Friends /></Layout> : <Login />}
+        />
+         <Route
+          path="/chat/:id"
+          element={authuser  && isonboarded ? <Layout showsidebar><ChatPage/></Layout> : authuser && !isonboarded? <Onboarding/>: <Login />}
         />
          <Route
           path="/*"

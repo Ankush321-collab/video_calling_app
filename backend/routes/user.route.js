@@ -2,6 +2,7 @@ import express from 'express'
 import { login, logout, onboard, signup } from '../controller/user.controller.js'
 import { protecteroute } from '../middleware/uth.middleware.js'
 import { acceptfriendrequest, getfriendrequest, getmyfriends, getOutgoingFriendReqs, getrecommend, rejectfriendrequest, sendfriendrequest } from '../controller/getpeople.controller.js'
+import User from '../model/user.model.js'
 const router=express.Router()
 
 router.post("/signup",signup)
@@ -23,6 +24,28 @@ router.get("/me", protecteroute, (req, res) => {
     success: true,
     user: req.user,
   });
+});
+
+router.get("/user/:id", protecteroute, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id).select("-password");
+    
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        success: false
+      });
+    }
+    
+    res.status(200).json(user);
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    res.status(500).json({
+      message: "Internal server error",
+      success: false
+    });
+  }
 });
 
 export default router;
